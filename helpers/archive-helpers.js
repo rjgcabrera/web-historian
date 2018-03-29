@@ -53,7 +53,7 @@ exports.addUrlToList = function(url, callback) {
     if (err) {
       throw err;
     } else {
-      console.log('URL: ', url);
+      //console.log('URL: ', url);
       callback(url);
     }
 
