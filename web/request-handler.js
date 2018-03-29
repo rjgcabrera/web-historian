@@ -43,20 +43,35 @@ var handleRequest = function (req, res) {
             res.end();
           }
         });
-        // console.log('YEEE: ' + archive.isUrlArchived(url));
-        // if (isArchived) {
-        //   console.log('About to serve Assets');
-        //   httpHelpers.serveAssets(res, archive.paths.archivedSites + '/' + url)
-        // } else {
-        //   console.log('get req error');
-        //   res.writeHead(404, httpHelpers.headers);
-        //   res.end();
-        // }
       }
     },
     'POST': (req, res) => {
       //if url is not in list
         // add url to list
+      var url = '';
+      req.on('data', (chunk) => {
+        url += chunk;
+      });
+      req.on('end', () => {
+        // var url = req;
+        url = url.slice(4) + '\n';
+        console.log('URL IN POST: ', url);
+        var isInList;
+        archive.isUrlInList(url, (bool) => {
+          isInList = bool;
+          if (!isInList) {
+            archive.addUrlToList(url, (url) => {
+              console.log('Wrote ' + url + ' to the list!');
+              res.writeHead(302, httpHelpers.headers);
+              res.end();
+            });
+          } else {
+            console.log(url + ' is already in the list!');
+            res.writeHead(302, httpHelpers.headers);
+            res.end();
+          }
+        });
+      });
 
     },
     'OPTIONS':(req, res) => {
