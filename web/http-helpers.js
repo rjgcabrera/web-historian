@@ -14,28 +14,43 @@ exports.serveAssets = function(res, asset, callback) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
-    // res.writeHead(200);
-    // res.end(fs.readFile(__dirname + req.url));
-    var status = 200;
-    fs.readFile (asset, 'utf-8', (err, data) => {
+
+    // var status = 200;
+    // fs.readFile (asset, 'utf-8', (err, data) => {
+    //   if (err) {
+    //     console.log('readFile failed', err);
+    //     status = 404;
+    //     data = 'Error Not Found';
+    //     throw err;
+    //   } else {
+    //     console.log('readFile success');
+    //     res.writeHead(status, exports.headers);
+    //     res.end(data);
+    //   }
+    // });
+
+//-----------------------------
+    fs.readFile(archive.paths.siteAssets + asset, 'utf-8', (err, data) => {
       if (err) {
-        console.log('readFile failed', err);
-        status = 404;
-        data = 'Error Not Found';
-        throw err;
+        fs.readFile(archive.paths.archivedSites + asset, 'utf-8', (err, data) => {
+          if (err) {
+            callback ? callback() : exports.sendResponse(res, 'Not Found', 404);
+          } else {
+            exports.sendResponse(res, data);
+          }
+        });
       } else {
-        console.log('readFile success');
-        res.writeHead(status, exports.headers);
-        res.end(data);
+        exports.sendResponse(res, data);
       }
     });
+
 };
 
 // As you progress, keep thinking about what helper functions you can put here!
 
 exports.sendResponse = function(response, obj, status) {
   status = status || 200;
-  response.writeHead(status, headers);
+  response.writeHead(status, exports.headers);
   response.end(obj);
 };
 

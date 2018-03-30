@@ -2,6 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var http = require('http');
+var request = require('request');
+// var _ = require('underscore');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -42,27 +44,32 @@ exports.isUrlInList = function(url, callback) {
     if (err) {
       throw err;
     } else {
+      data = data.trim();
       var urlList = data.split('\n');
-      callback(urlList.includes(url));
+      // console.log('ISURLINLIST ARR:', urlList.includes(url.trim()));
+      callback(urlList.includes(url.trim()));
     }
   });
 };
 
 exports.addUrlToList = function(url, callback) {
-  fs.appendFile(exports.paths.list, url, 'utf-8', (err) => {
-    if (err) {
-      throw err;
-    } else {
-      //console.log('URL: ', url);
-      callback(url);
-    }
+  if (url.slice(0, 3) === 'www') {
+    fs.appendFile(exports.paths.list, url, 'utf-8', (err) => {
+      if (err) {
+        throw err;
+      } else {
+        //console.log('URL: ', url);
+        callback(url);
+      }
 
-  });
+    });
+  }
+
 };
 
 //requires implementation of your web worker?
 exports.isUrlArchived = function(url, callback) {
-  fs.stat(exports.paths.archivedSites + '/' + url, function(err, stat) {
+  fs.stat(exports.paths.archivedSites + '/' + url.trim(), function(err, stat) {
       if (err === null) {
         callback(true);
       } else {
@@ -72,39 +79,51 @@ exports.isUrlArchived = function(url, callback) {
   });
 };
 
+// exports.downloadUrls = function(urls) {
+//   urls.pop();
+//   for (var i = 0; i < urls.length; i++) {
+//     // console.log('urls[i]: ', urls[i]);
+//     var url = urls[i];
+//     console.log('dlURL url: ', url);
+//     exports.isUrlArchived(url, (bool) => {
+//       console.log('urls['+i+']: ', url);
+//       if (bool === false) {
+//         //console.log('yo');
+//         var options = {
+//           host: url,
+//           port: 80,
+//           path: '/index.html'
+//         };
+//         console.log('options: ', JSON.stringify(options));
+//         var body = '';
+//         http.get(options, (res) => {
+//           // fs.writeFile();
+//           //console.log('get response in dlUrls: ', res);
+//           res.on('data', (chunk) => {
+//             body += chunk;
+//           });
+//           res.on('end', () => {
+//             console.log('BODY INSIDE DLURL: ', body);
+//             fs.writeFile(exports.paths.archivedSites + '/' + url, body, (err) => {
+//               if (err) {
+//                 console.log(err);
+//               }
+//             });
+//           });
+//         });
+//
+//       }
+//     });
+//
+//   }
+//
+// };
+
 exports.downloadUrls = function(urls) {
-  for (var i = 0; i < urls.length; i++) {
-    // console.log('urls[i]: ', urls[i]);
-    var url = urls[i];
-    exports.isUrlArchived(urls[i], (bool) => {
-      //console.log('urls[i]: ', url);
-      if (bool === false) {
-        //console.log('yo');
-        var options = {
-          host: url,
-          port: 80,
-          path: '/index.html'
-        };
-        var body = '';
-        http.get(options, (res) => {
-          // fs.writeFile();
-          //console.log('get response in dlUrls: ', res);
-          res.on('data', (chunk) => {
-            body += chunk;
-          });
-          res.on('end', () => {
-            //console.log('BODY INSIDE DLURL: ', body);
-            fs.writeFile(exports.paths.archivedSites + '/' + url, body, (err) => {
-              if (err) {
-                console.log(err);
-              }
-            });
-          });
-        });
-
-      }
-    });
-
-  }
-
+  // Iterate over urls and pipe to new files
+  urls.pop();
+  _.each(urls, function (url) {
+    if (!url) { return; }
+    request({url: 'http://' + url, followAllRedirects: true}).pipe(fs.createWriteStream(exports.paths.archivedSites + '/' + url));
+  });
 };

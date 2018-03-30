@@ -4,7 +4,9 @@
 var archive = require('../helpers/archive-helpers');
 
 exports.fetch = function() {
+  console.log('YO');
   archive.readListOfUrls((urls) => {
+    console.log('urls in fetch: ', urls);
     archive.downloadUrls(urls);
   });
 };
