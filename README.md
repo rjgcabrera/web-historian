@@ -1,2 +1,2 @@
 #web-historian
-This is a project I completed as a student at [hackreactor](http://hackreactor.com). This project was worked on with a pair.
+A web service that archives the presentation of a website by submitting a URL.
